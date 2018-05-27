@@ -3,9 +3,13 @@ const router = express.Router();
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const aws = require('aws-sdk');
-// aws.config.loadFromPath('./config/aws_config.json');
-// const s3 = new aws.S3();
+aws.config.loadFromPath('./config/aws_config.json');
+const s3 = new aws.S3();
 
+const upload = require('../../config/multer.js');
+
+const imgList = require('../../config/imgList.js');
+const bucketID = require('../../config/bucketID.json');
 
 const async = require('async');
 const pool = require('../../config/dbPool.js');
@@ -95,7 +99,12 @@ router.post('/', function(req, res){
 					} else {
 						storesInfo.review_count = result[0].COUNT(u_idx);
 						stroesInfo.desc = result[0].s_desc;
-						storesInfo.image =result[0].s_image;
+
+						for(var imgStr in imgList){
+							if(imgStr === result[0].s_image){
+								storesInfo.image = "https://s3.ap-northeast-2.amazonaws.com/" + bucketID.ID + result[0].s_image;
+							}
+						}
 						callback(null, connection, result[0]);
 					}
 				}
@@ -123,7 +132,11 @@ router.post('/', function(req, res){
 						reviewInfo.user_id = result[0].u_id;
 						reviewInfo.time = result[0].r_time;
 						reviewInfo.desc = result[0].r_desc;
-						reviewInfo.image = result[0].r_image;
+						for(var imgStr in imgList){
+							if(imgStr === result[0].s_image){
+								reviewInfo.image = "https://s3.ap-northeast-2.amazonaws.com/" + bucketID.ID + result[0].r_image;
+							}
+						}
 						callback(null, connection, result[0]);
 					}
 				}
