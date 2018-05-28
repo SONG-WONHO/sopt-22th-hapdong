@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const async = require('async');
-
 const upload = require('../../config/multer.js');
 const pool = require('../../config/dbPool.js');
 
@@ -13,12 +12,12 @@ router.get('/', (req, res, next) => {
 });
 
 
-router.post('/', function(req, res){
+router.post('/', upload.single('image'), function(req, res){
 	let u_idx;
 	let user_id = req.body.user_id;
 	let r_time = req.body.time;
 	let r_desc = req.body.desc;
-	let r_image = req.body.image;
+	let r_image; 
 
 	let taskArray = [
 	// 1. pool에서 connection 하나 가져오기
@@ -61,7 +60,6 @@ router.post('/', function(req, res){
       });
     },
 
-
     // 3. insert review info
     function(connection, result, callback){
     	let insertReviewQuery = "INSERT INTO review (r_time, r_desc, r_image, u_idx) VALUES (?, ?, ?, ?) ";
@@ -80,8 +78,15 @@ router.post('/', function(req, res){
         connection.release(); // connection 반환
       });
     }
+
 	]
 
+if(req.file==undefined){
+		res.status(422).send({
+			message : "No image File"
+		});
+	} else{ // image 파일이 정상이면 
+		r_image = req.file.key; // s3 상에 저장되는 file name임 -> config/multer에서 설정 해준것
 	async.waterfall(taskArray, function(err, result){
 		if(err){
 			console.log(err);
@@ -89,7 +94,10 @@ router.post('/', function(req, res){
 			console.log(result);
 		}
 	});
+
+}
 });
+
 
 
 module.exports = router;
