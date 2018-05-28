@@ -47,9 +47,17 @@ router.post('/', function(req, res){
           connection.release(); // connection 반환
           callback("connection.query Error : " + err);
         } else {
+					if (result.length === 0){
+						res.status(204).send({
+							message : "No Data"
+						});
+						connection.release();
+						callback("No Data");
+					} else {
 			u_idx = result[0].u_idx;
 			callback(null, connection, result[0]);
 				}
+			}
       });
     },
 

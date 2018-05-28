@@ -67,7 +67,7 @@ router.post('/', function(req, res){
 				} else {
 					if (result.length === 0){
 						res.status(204).send({
-							message : "No Data",
+							message : "No Data"
 						});
 						connection.release();
 						callback("No Data");
