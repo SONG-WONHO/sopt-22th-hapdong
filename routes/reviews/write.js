@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const async = require('async');
-const upload = require('../../config/multer.js');
+const upload = require('../../config/s3multer.js');
 const pool = require('../../config/dbPool.js');
 
 
@@ -26,7 +26,7 @@ router.post('/', upload.single('image'), function(req, res){
         if (err) {
           res.status(500).send({
             message: "Internal Server Error"
-          });
+          }); 
           callback("pool.getConnection Error : " + err);
         } else {
           callback(null, connection);
@@ -79,7 +79,7 @@ router.post('/', upload.single('image'), function(req, res){
       });
     }
 
-	]
+	];
 
 if(req.file==undefined){
 		res.status(422).send({
