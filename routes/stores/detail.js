@@ -6,7 +6,7 @@ const aws = require('aws-sdk');
 aws.config.loadFromPath('./config/aws_config.json');
 const s3 = new aws.S3();
 
-const upload = require('../../config/multer.js');
+const upload = require('../../config/s3multer.js');
 
 const imgList = require('../../config/imgList.js');
 const bucketID = require('../../config/bucketID.json');
@@ -28,6 +28,7 @@ router.post('/', function(req, res){
 	let s_category = req.body.s_category;
 	let s_name = req.body.s_name;
 
+	console.log(s_idx + " " + s_category + " " + s_name);
 	let taskArray = [ 
 		//1. check null value
 		function(callback) {
@@ -56,7 +57,7 @@ router.post('/', function(req, res){
 
 		//3. get menu info
 		function(connection, callback){
-			let getMenuInfoQuery = "SELECT menu.m_name, menu.m_pirce FROM menu WHERE s_idx = ? ";
+			let getMenuInfoQuery = "SELECT menu.m_name, menu.m_price FROM menu WHERE s_idx = ? ";
 			connection.query(getMenuInfoQuery, s_idx, function(err, result){
 				if(err) {
 					res.status(500).send({
@@ -81,7 +82,7 @@ router.post('/', function(req, res){
 		},
 		//4. get stores info
 		function(connection, result, callback){
-			let getStoresInfoQuery = "SELECT COUNT(u_idx), s_desc, s_image FROM store NATURAL JOIN review WHERE s_idx = ? ";
+			let getStoresInfoQuery = "SELECT COUNT(u_idx) as count, s_desc, s_image FROM store NATURAL JOIN review WHERE s_idx = ? ";
 			connection.query(getStoresInfoQuery, s_idx, function(err, result){
 				if(err) {
 					res.status(500).send({
@@ -97,8 +98,8 @@ router.post('/', function(req, res){
 						connection.release();
 						callback("No Data");
 					} else {
-						storesInfo.review_count = result[0].COUNT(u_idx);
-						stroesInfo.desc = result[0].s_desc;
+						storesInfo.review_count = result[0].count;
+						storesInfo.desc = result[0].s_desc;
 
 						for(var imgStr in imgList){
 							if(imgStr === result[0].s_image){
@@ -113,7 +114,7 @@ router.post('/', function(req, res){
 
 		//5. get review info
 		function(connection, result, callback){
-			let getReviewInfoQuery = "SELECT A.u_id, A.r_time, A.r_desc, A.r_image FROM review NATURAL JOIN user AS A WHERE s_idx = ?";
+			let getReviewInfoQuery = "SELECT u_id, r_time, r_desc, r_image FROM review NATURAL JOIN user WHERE s_idx = ?";
 			connection.query(getReviewInfoQuery, s_idx, function(err, result){
 					if(err) {
 					res.status(500).send({
@@ -151,13 +152,14 @@ router.post('/', function(req, res){
 		if (err){
 			console.log(err);
 		} else {
-			console(result);
 			detailInfo = {
 				message : "Success to Show Detail Info",
 				menu : menuInfo,
 				stores : storesInfo,
 				reviews : reviewInfo
 			};
+
+			console.log(detailInfo);
 		}
 	});
 
